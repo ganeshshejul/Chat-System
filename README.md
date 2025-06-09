@@ -266,12 +266,6 @@ service firebase.storage {
 3. **Start Chatting**: Click on a contact to start private messaging
 4. **Manage Chats**: Clear chat history or remove contacts as needed
 
-### File Sharing
-1. **Upload Files**: Click the attachment icon in the message input
-2. **Select File**: Choose from images, documents, videos, or audio
-3. **Monitor Progress**: Watch the upload progress indicator
-4. **Send Message**: File will be shared once upload completes
-
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -285,11 +279,6 @@ service firebase.storage {
 - Verify email/password provider is enabled
 - Check email verification status
 - Ensure proper error handling
-
-**File Upload Problems**
-- Check Firebase Storage is enabled
-- Verify storage security rules
-- Ensure file size limits are appropriate
 
 **Real-time Updates Not Working**
 - Check Firestore security rules
