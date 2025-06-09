@@ -342,6 +342,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Vite](https://vitejs.dev/) - Build tool
 - [React Icons](https://react-icons.github.io/react-icons/) - Icon library
 
+## 📞 Support
+
+If you have any questions or need help with the project, please feel free to:
+- Open an issue on GitHub
+- Contact: contact.ganeshshejul@gmail.com
+
 ---
 
-**Made with ❤️ using React and Firebase**
+**Made By ❤️ Ganesh Shejul**
