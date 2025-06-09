@@ -87,12 +87,6 @@ yarn install
    - Start in test mode (for development)
    - Choose your preferred location
 
-3. **Storage** (for file uploads):
-   - Go to "Storage"
-   - Click "Get started"
-   - Start in test mode
-   - Choose your preferred location
-
 ### 4. Environment Configuration
 
 Create a `.env` file in the root directory:
