@@ -66,8 +66,8 @@ Before you begin, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone <your-repository-url>
-cd chat-app
+git clone https://github.com/ganeshshejul/Chat-System.git
+cd Chat-System
 ```
 
 ### 2. Install Dependencies
@@ -130,7 +130,7 @@ The application will be available at `http://localhost:5173`
 ## 📁 Project Structure
 
 ```
-chat-app/
+Chat-System/
 ├── src/
 │   ├── components/          # Reusable UI components
 │   │   ├── ChatInput.jsx    # Message input component
