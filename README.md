@@ -29,16 +29,6 @@ A modern, feature-rich real-time chat application built with React and Firebase.
 - **Unread Message Indicators** - Visual indicators for new messages
 - **Chat History Management** - Clear chat history when needed
 
-### 📁 File Sharing
-- **File Upload** - Share images, documents, videos, and audio files
-- **File Preview** - Preview uploaded files before sending
-- **Progress Tracking** - Real-time upload progress indicators
-- **Multiple File Types** - Support for various file formats including:
-  - Images (JPEG, PNG, GIF, etc.)
-  - Documents (PDF, DOC, DOCX)
-  - Videos (MP4, AVI, MOV, etc.)
-  - Audio files (MP3, WAV, etc.)
-
 ### 🎨 User Experience
 - **Responsive Design** - Works seamlessly on desktop and mobile devices
 - **Modern UI** - Clean, intuitive interface with React Icons
