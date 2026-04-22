@@ -1,9 +1,9 @@
 import { useUser } from '../context/UserContext.jsx';
-import { FaUserFriends, FaTrash, FaComments, FaBell } from 'react-icons/fa';
+import { FaUserFriends, FaComments, FaBell } from 'react-icons/fa';
 import { useEffect } from 'react';
 
 const ContactsList = () => {
-  const { contacts, removeContact, setActiveChat, activeChat, unreadMessages } = useUser();
+  const { contacts, setActiveChat, activeChat, unreadMessages } = useUser();
 
   // Debug unread messages when they change
   useEffect(() => {
@@ -17,16 +17,6 @@ const ContactsList = () => {
       });
     }
   }, [unreadMessages, contacts]);
-
-  const handleRemoveContact = async (contactId, e) => {
-    e.stopPropagation(); // Prevent triggering the chat selection
-    await removeContact(contactId);
-
-    // If the removed contact is the active chat, clear the active chat
-    if (activeChat && activeChat.uid === contactId) {
-      setActiveChat(null);
-    }
-  };
 
   const handleSelectChat = (contact) => {
     console.log(`Selecting chat with ${contact.displayName}, unread messages: ${unreadMessages[contact.uid] || 0}`);
@@ -70,14 +60,6 @@ const ContactsList = () => {
                   ) : (
                     <FaComments className="contact-btn-icon" />
                   )}
-                </button>
-                <button
-                  className="contact-remove-btn"
-                  title="Remove contact"
-                  aria-label="Remove contact"
-                  onClick={(e) => handleRemoveContact(contact.uid, e)}
-                >
-                  <FaTrash className="contact-btn-icon" />
                 </button>
               </div>
             </li>

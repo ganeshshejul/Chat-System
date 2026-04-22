@@ -1,23 +1,21 @@
 import { useAuth } from '../context/AuthContext.jsx';
 import { linkify } from '../utils/linkify.js';
+import { FaCheck, FaCheckDouble } from 'react-icons/fa';
 
-const ChatMessage = ({ message }) => {
+const ChatMessage = ({ message, showStatus = false }) => {
   const { currentUser } = useAuth();
-  const { text, uid, displayName, createdAt } = message;
+  const { text, uid, displayName, createdAt, image, status } = message;
 
-  // Check if the message is from the current user
-  const messageClass = uid === currentUser?.uid ? 'sent' : 'received';
+  const isOwnMessage = uid === currentUser?.uid;
+  const messageClass = isOwnMessage ? 'sent' : 'received';
 
-  // Format timestamp
   const formattedTime = createdAt ? new Date(createdAt.toDate()).toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit'
   }) : '';
 
-  // Process each line of text to detect and render links
   const renderTextWithLinks = (line) => {
     const segments = linkify(line);
-
     return segments.map((segment, i) => {
       if (segment.isUrl) {
         return (
@@ -36,22 +34,67 @@ const ChatMessage = ({ message }) => {
     });
   };
 
+  const renderMessageStatus = () => {
+    if (!showStatus || !isOwnMessage) return null;
+
+    if (status === 'read') {
+      return (
+        <span className="message-status read" title="Read">
+          <FaCheckDouble />
+        </span>
+      );
+    }
+
+    if (status === 'delivered') {
+      return (
+        <span className="message-status delivered" title="Delivered">
+          <FaCheckDouble />
+        </span>
+      );
+    }
+
+    return (
+      <span className="message-status sent" title="Sent">
+        <FaCheck />
+      </span>
+    );
+  };
+
   return (
     <div className={`message ${messageClass}`}>
       <div className="message-content">
         <div className="message-info">
           <span className="message-sender">{displayName}</span>
-          <span className="message-time">{formattedTime}</span>
+          <span className="message-meta">
+            <span className="message-time">{formattedTime}</span>
+            {renderMessageStatus()}
+          </span>
         </div>
 
-        <p className="message-text">
-          {text.split('\n').map((line, index) => (
-            <span key={index} className="message-line">
-              {renderTextWithLinks(line)}
-              {index < text.split('\n').length - 1 && <br />}
-            </span>
-          ))}
-        </p>
+        {image && (
+          <div className="message-image-wrapper">
+            <a href={image.url} target="_blank" rel="noopener noreferrer">
+              <img
+                src={image.displayUrl || image.url}
+                alt={image.name || 'Image'}
+                className="message-image"
+                loading="lazy"
+              />
+            </a>
+            <span className="message-image-name">{image.name}</span>
+          </div>
+        )}
+
+        {text && (
+          <p className="message-text">
+            {text.split('\n').map((line, index, arr) => (
+              <span key={index} className="message-line">
+                {renderTextWithLinks(line)}
+                {index < arr.length - 1 && <br />}
+              </span>
+            ))}
+          </p>
+        )}
       </div>
     </div>
   );

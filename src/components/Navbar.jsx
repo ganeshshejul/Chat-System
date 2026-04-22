@@ -1,9 +1,11 @@
 import { useAuth } from '../context/AuthContext.jsx';
+import { useTheme } from '../context/ThemeContext.jsx';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaSignOutAlt, FaComments } from 'react-icons/fa';
+import { FaSignOutAlt, FaComments, FaSun, FaMoon } from 'react-icons/fa';
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -22,6 +24,14 @@ const Navbar = () => {
         <Link to="/" className="logo-text">Chat System</Link>
       </div>
       <div className="navbar-user">
+        <button
+          onClick={toggleTheme}
+          className="theme-toggle-btn"
+          title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+          aria-label="Toggle theme"
+        >
+          {theme === 'light' ? <FaMoon /> : <FaSun />}
+        </button>
         {currentUser ? (
           <>
             <span className="user-name">Hello, {currentUser.displayName}</span>

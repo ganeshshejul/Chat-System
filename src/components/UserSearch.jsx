@@ -10,7 +10,17 @@ import { useNavigate } from 'react-router-dom';
 
 const UserSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { searchUsers, searchResults, loading, error, addContact, contacts, setActiveChat } = useUser();
+  const {
+    searchUsers,
+    searchResults,
+    loading,
+    error,
+    sendContactRequest,
+    contacts,
+    outgoingRequests,
+    receivedRequests,
+    setActiveChat
+  } = useUser();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [addingContact, setAddingContact] = useState({});
@@ -47,7 +57,7 @@ const UserSearch = () => {
 
   const handleAddContact = async (user) => {
     setAddingContact(prev => ({ ...prev, [user.id]: true }));
-    await addContact(user);
+    await sendContactRequest(user);
     setAddingContact(prev => ({ ...prev, [user.id]: false }));
   };
 
@@ -55,6 +65,10 @@ const UserSearch = () => {
   const isContact = (userId) => {
     return contacts.some(contact => contact.uid === userId);
   };
+
+  const hasOutgoingRequest = (userId) => outgoingRequests.includes(userId);
+
+  const hasIncomingRequest = (userId) => receivedRequests.some((request) => request.senderId === userId);
 
   // Log search results for debugging
   useEffect(() => {
@@ -470,15 +484,23 @@ const UserSearch = () => {
                 <button className="user-search-added" disabled>
                   <FaCheck /> Added
                 </button>
+              ) : hasIncomingRequest(user.id) ? (
+                <button className="user-search-requested" disabled>
+                  <FaCheck /> Check Requests
+                </button>
+              ) : hasOutgoingRequest(user.id) ? (
+                <button className="user-search-requested" disabled>
+                  <FaCheck /> Requested
+                </button>
               ) : (
                 <button
                   className="user-search-add"
                   onClick={() => handleAddContact(user)}
                   disabled={addingContact[user.id]}
                 >
-                  {addingContact[user.id] ? 'Adding...' : (
+                  {addingContact[user.id] ? 'Sending...' : (
                     <>
-                      <FaUserPlus /> Add
+                      <FaUserPlus /> Request
                     </>
                   )}
                 </button>
@@ -495,8 +517,8 @@ const UserSearch = () => {
 
       {!searchPerformed && !loading && (
         <div className="user-search-instructions">
-          <p>Search for users by name, username, or email to add them to your contacts.</p>
-          <p>You can then start private conversations with your contacts.</p>
+          <p>Search for users by name, username, or email and send a chat request.</p>
+          <p>Once the request is accepted from Requests tab, you can start private chat.</p>
 
           <div className="debug-buttons">
             <button

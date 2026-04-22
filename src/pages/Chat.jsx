@@ -9,6 +9,7 @@ import PrivateChat from '../components/PrivateChat.jsx';
 import PrivateChatInput from '../components/PrivateChatInput.jsx';
 import PublicChatHeader from '../components/PublicChatHeader.jsx';
 import { useUser } from '../context/UserContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { FaArrowDown } from 'react-icons/fa';
 
 const Chat = () => {
@@ -17,7 +18,10 @@ const Chat = () => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const latestPublicMessageIdRef = useRef(null);
+  const initializedPublicMessagesRef = useRef(false);
   const { activeChat } = useUser();
+  const { currentUser } = useAuth();
 
   // Scroll to bottom of messages
   const scrollToBottom = useCallback(() => {
@@ -46,6 +50,11 @@ const Chat = () => {
   }, []);
 
   useEffect(() => {
+    if (!currentUser) {
+      setMessages([]);
+      return;
+    }
+
     // Check if Firebase is properly configured
     const isFirebaseConfigured = db &&
       db._databaseId &&
@@ -70,6 +79,42 @@ const Chat = () => {
           ...doc.data()
         }));
         setMessages(messagesData);
+
+        if (snapshot.empty) {
+          initializedPublicMessagesRef.current = true;
+          return;
+        }
+
+        const latestDoc = snapshot.docs[snapshot.docs.length - 1];
+        const latestData = latestDoc.data();
+        const isInitialLoad = !initializedPublicMessagesRef.current;
+        initializedPublicMessagesRef.current = true;
+
+        const isNewLatest = latestPublicMessageIdRef.current !== latestDoc.id;
+        latestPublicMessageIdRef.current = latestDoc.id;
+
+        const canNotify = (
+          typeof window !== 'undefined' &&
+          'Notification' in window &&
+          Notification.permission === 'granted'
+        );
+
+        const isIncoming = latestData.uid && latestData.uid !== currentUser.uid;
+        const shouldNotifyByContext = document.visibilityState === 'hidden' || !document.hasFocus();
+
+        if (canNotify && !isInitialLoad && isNewLatest && isIncoming && shouldNotifyByContext) {
+          const messagePreview = latestData.text?.trim() || (latestData.image ? 'Sent an image' : 'New message in public chat');
+          const notification = new Notification('Public Chat', {
+            body: `${latestData.displayName || 'Someone'}: ${messagePreview}`,
+            tag: 'public-chat',
+            renotify: false
+          });
+
+          notification.onclick = () => {
+            window.focus();
+            notification.close();
+          };
+        }
       }, (error) => {
         console.error('Firestore error:', error);
         setFirebaseError(true);
@@ -82,7 +127,7 @@ const Chat = () => {
       setFirebaseError(true);
       return () => {};
     }
-  }, []);
+  }, [currentUser]);
 
   // Scroll to bottom whenever messages change - always scroll to bottom
   useEffect(() => {
@@ -138,16 +183,16 @@ const Chat = () => {
                 messages.map(msg => <ChatMessage key={msg.id} message={msg} />)
               )}
               <div ref={messagesEndRef} />
-
-              <button
-                className={`scroll-to-bottom-button ${showScrollButton ? 'visible' : ''}`}
-                onClick={scrollToBottom}
-                aria-label="Scroll to bottom"
-                title="Scroll to bottom"
-              >
-                <FaArrowDown />
-              </button>
             </div>
+
+            <button
+              className={`scroll-to-bottom-button ${showScrollButton ? 'visible' : ''}`}
+              onClick={scrollToBottom}
+              aria-label="Scroll to bottom"
+              title="Scroll to bottom"
+            >
+              <FaArrowDown />
+            </button>
             <ChatInput />
           </>
         )}

@@ -37,8 +37,10 @@ export const createOrUpdateUserProfile = async (user, username = null) => {
         email: user.email || '',
         photoURL: user.photoURL || '',
         emailVerified: user.emailVerified || false,
+        isOnline: false,
         createdAt: new Date(),
-        lastActive: new Date()
+        lastActive: new Date(),
+        lastSeen: new Date()
       };
 
       console.log('User data to be saved:', userData);
@@ -70,7 +72,9 @@ export const createOrUpdateUserProfile = async (user, username = null) => {
         username: finalUsername,
         email: user.email || existingData.email || '',
         emailVerified: user.emailVerified !== undefined ? user.emailVerified : existingData.emailVerified || false,
-        lastActive: new Date()
+        isOnline: existingData.isOnline ?? false,
+        lastActive: new Date(),
+        lastSeen: existingData.lastSeen || new Date()
       };
 
       console.log('Updates to be applied:', updates);

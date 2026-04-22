@@ -1,0 +1,72 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isChatParticipant(chatId) {
+      return isSignedIn() && chatId.matches('.*' + request.auth.uid + '.*');
+    }
+
+    // Public chat messages — authenticated users can read and create
+    match /messages/{messageId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+                    && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Private messages between two users
+    match /privateMessages/{chatId}/messages/{messageId} {
+      allow read: if isChatParticipant(chatId);
+      allow create: if isChatParticipant(chatId)
+                    && request.resource.data.senderId == request.auth.uid;
+      allow update: if isChatParticipant(chatId);
+      allow delete: if false;
+    }
+
+    // User profiles — anyone authenticated can read; only owner can write
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn()
+                   && request.auth.uid == userId;
+
+      // Contacts / friend lists under user document
+      match /contacts/{contactId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow write: if isSignedIn() && (
+          request.auth.uid == userId ||
+          (
+            contactId == request.auth.uid &&
+            exists(/databases/$(database)/documents/users/$(request.auth.uid)/requests/$(userId))
+          )
+        );
+      }
+
+      // Incoming chat requests for this user
+      match /requests/{requestId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow create: if isSignedIn()
+                      && request.auth.uid == requestId
+                      && request.resource.data.senderId == request.auth.uid;
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+        allow update: if false;
+      }
+
+      // Outgoing chat requests created by this user
+      match /outgoingRequests/{recipientId} {
+        allow read, write: if isSignedIn() && (
+          request.auth.uid == userId ||
+          (
+            request.method == 'delete' &&
+            recipientId == request.auth.uid &&
+            exists(/databases/$(database)/documents/users/$(request.auth.uid)/requests/$(userId))
+          )
+        );
+      }
+    }
+  }
+}

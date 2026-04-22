@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import UserSearch from './UserSearch.jsx';
 import ContactsList from './ContactsList.jsx';
-import { FaUsers, FaSearch, FaChevronLeft } from 'react-icons/fa';
+import RequestsList from './RequestsList.jsx';
+import { FaUsers, FaSearch, FaChevronLeft, FaInbox } from 'react-icons/fa';
+import { useUser } from '../context/UserContext.jsx';
 
 const Sidebar = () => {
   const [activeTab, setActiveTab] = useState('contacts');
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { receivedRequests } = useUser();
 
   const toggleMobileSidebar = () => {
     setIsMobileOpen(!isMobileOpen);
@@ -35,14 +38,24 @@ const Sidebar = () => {
           >
             <FaSearch className="sidebar-tab-icon" /> Find Users
           </button>
+          <button
+            className={`sidebar-tab ${activeTab === 'requests' ? 'active' : ''}`}
+            onClick={() => setActiveTab('requests')}
+          >
+            <span className="sidebar-tab-icon-wrap">
+              <FaInbox className="sidebar-tab-icon" />
+              {receivedRequests.length > 0 && (
+                <span className="sidebar-tab-badge">{receivedRequests.length}</span>
+              )}
+            </span>
+            Requests
+          </button>
         </div>
 
         <div className="sidebar-content">
-          {activeTab === 'contacts' ? (
-            <ContactsList />
-          ) : (
-            <UserSearch />
-          )}
+          {activeTab === 'contacts' && <ContactsList />}
+          {activeTab === 'search' && <UserSearch />}
+          {activeTab === 'requests' && <RequestsList />}
         </div>
       </div>
     </>

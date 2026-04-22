@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -10,7 +10,9 @@ import {
   signInWithPopup,
   GoogleAuthProvider
 } from 'firebase/auth';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { auth } from '../firebase/config.js';
+import { db } from '../firebase/config.js';
 import { createOrUpdateUserProfile } from '../utils/userProfile.js';
 
 const AuthContext = createContext();
@@ -23,6 +25,20 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  const lastKnownUserRef = useRef(null);
+
+  const setUserPresence = async (userId, isOnline) => {
+    if (!userId) return;
+    try {
+      await setDoc(doc(db, 'users', userId), {
+        isOnline,
+        lastSeen: serverTimestamp(),
+        lastActive: serverTimestamp()
+      }, { merge: true });
+    } catch (error) {
+      console.error('Presence update failed:', error);
+    }
+  };
 
   // Check if Firebase is properly configured
   const isFirebaseConfigured = auth &&
@@ -168,6 +184,9 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
+      if (currentUser?.uid) {
+        await setUserPresence(currentUser.uid, false);
+      }
       return await signOut(auth);
     } catch (error) {
       console.error('Logout error:', error);
@@ -186,6 +205,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         console.log('Auth state changed - user:', user?.uid, user?.email);
+
+        if (user?.uid) {
+          lastKnownUserRef.current = user.uid;
+          await setUserPresence(user.uid, true);
+        } else if (lastKnownUserRef.current) {
+          await setUserPresence(lastKnownUserRef.current, false);
+          lastKnownUserRef.current = null;
+        }
 
         // Don't automatically update profile on auth state change
         // Profile updates are handled explicitly in signup/login functions
