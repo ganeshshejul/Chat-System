@@ -15,6 +15,25 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
+const requiredFirebaseKeys = [
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID',
+  'VITE_FIREBASE_STORAGE_BUCKET',
+  'VITE_FIREBASE_MESSAGING_SENDER_ID',
+  'VITE_FIREBASE_APP_ID'
+];
+
+const missingFirebaseKeys = requiredFirebaseKeys.filter((key) => !import.meta.env[key]);
+
+let firebaseInitializationError = null;
+if (missingFirebaseKeys.length > 0) {
+  firebaseInitializationError = new Error(
+    `Missing Firebase environment variables: ${missingFirebaseKeys.join(', ')}`
+  );
+  console.error('Firebase initialization skipped:', firebaseInitializationError.message);
+}
+
 
 
 /*
@@ -36,10 +55,24 @@ To get your Firebase configuration:
 5. Copy the configuration values from the Firebase SDK snippet
 */
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+// Initialize Firebase safely so configuration issues do not crash app bootstrap.
+let app = null;
+let auth = null;
+let db = null;
+let storage = null;
+
+if (!firebaseInitializationError) {
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+  } catch (error) {
+    firebaseInitializationError = error;
+    console.error('Firebase initialization failed:', error);
+  }
+}
+
+export { app, auth, db, storage, firebaseInitializationError };
 
 export default app;
