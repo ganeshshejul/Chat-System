@@ -12,7 +12,7 @@ import './styles/App.css';
 function App() {
   return (
     <ThemeProvider>
-      <Router basename="/Chat-System">
+      <Router>
         <AuthProvider>
           <UserProvider>
             <div className="app">
