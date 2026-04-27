@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useUser } from '../context/UserContext.jsx';
-import { FaPaperPlane, FaImage } from 'react-icons/fa';
+import { FaPaperPlane, FaImage, FaSmile } from 'react-icons/fa';
 import { uploadToImgBB, isAllowedImageType } from '../utils/imgbb.js';
+
+const EMOJIS = ['😀', '😂', '😍', '🥳', '😎', '🤔', '😭', '😡', '👍', '👏', '🙏', '🔥', '❤️', '💯', '🎉', '✅', '👀', '🤝', '💬', '😅', '😴', '🤗', '🤖', '✨'];
 
 const PrivateChatInput = () => {
   const [message, setMessage] = useState('');
@@ -11,10 +13,12 @@ const PrivateChatInput = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { activeChat, sendPrivateMessage } = useUser();
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const dragCounterRef = useRef(0);
+  const emojiPickerRef = useRef(null);
 
   const autoResizeTextarea = () => {
     const textarea = textareaRef.current;
@@ -27,6 +31,17 @@ const PrivateChatInput = () => {
   useEffect(() => {
     autoResizeTextarea();
   }, [message]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!emojiPickerRef.current?.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleImageSelect = useCallback((file) => {
     setUploadError('');
@@ -100,6 +115,7 @@ const PrivateChatInput = () => {
 
       await sendPrivateMessage(message.trim(), activeChat.uid, imageData);
       setMessage('');
+      setShowEmojiPicker(false);
       removeImage();
       setUploadProgress(0);
     } catch (error) {
@@ -115,6 +131,11 @@ const PrivateChatInput = () => {
       e.preventDefault();
       handleSendMessage(e);
     }
+  };
+
+  const handleEmojiSelect = (emoji) => {
+    setMessage((prev) => `${prev}${emoji}`);
+    textareaRef.current?.focus();
   };
 
   if (!activeChat) return null;
@@ -172,6 +193,35 @@ const PrivateChatInput = () => {
         >
           <FaImage />
         </button>
+
+        <div className="emoji-picker-wrap" ref={emojiPickerRef}>
+          <button
+            type="button"
+            className={`emoji-toggle-btn ${showEmojiPicker ? 'active' : ''}`}
+            onClick={() => setShowEmojiPicker((prev) => !prev)}
+            title="Add emoji"
+            aria-label="Add emoji"
+            disabled={uploading}
+          >
+            <FaSmile />
+          </button>
+
+          {showEmojiPicker && (
+            <div className="emoji-picker-panel" role="listbox" aria-label="Emoji picker">
+              {EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  className="emoji-item-btn"
+                  onClick={() => handleEmojiSelect(emoji)}
+                  aria-label={`Insert ${emoji}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <textarea
           ref={textareaRef}

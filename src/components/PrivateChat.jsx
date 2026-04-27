@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback } from 'react';
 import { useUser } from '../context/UserContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import ChatMessage from './ChatMessage.jsx';
-import { FaUser, FaTrash, FaArrowDown, FaUserTimes } from 'react-icons/fa';
+import { FaUser, FaTrash, FaArrowDown, FaUserTimes, FaArrowLeft } from 'react-icons/fa';
 
 const PrivateChat = () => {
   const { activeChat, privateMessages, clearChat, removeContact, setActiveChat } = useUser();
@@ -134,9 +134,19 @@ const PrivateChat = () => {
     status: msg.status || 'sent'
   }));
 
+  const isActuallyOnline = (chatUser) => {
+    if (!chatUser?.isOnline) return false;
+    if (!chatUser.lastActive) return false;
+    const lastActiveDate = chatUser.lastActive?.toDate
+      ? chatUser.lastActive.toDate()
+      : new Date(chatUser.lastActive);
+    // Consider online only if lastActive within the last 5 minutes
+    return (Date.now() - lastActiveDate.getTime()) < 5 * 60 * 1000;
+  };
+
   const getLastSeenText = (chatUser) => {
     if (!chatUser) return '';
-    if (chatUser.isOnline) return 'online';
+    if (isActuallyOnline(chatUser)) return 'online';
     if (!chatUser.lastSeen) return 'last seen recently';
 
     const seenDate = chatUser.lastSeen?.toDate ? chatUser.lastSeen.toDate() : new Date(chatUser.lastSeen);
@@ -159,13 +169,23 @@ const PrivateChat = () => {
   return (
     <div className="private-chat">
       <div className="private-chat-header">
-        <div className="private-chat-user">
-          <FaUser className="private-chat-avatar" />
-          <div className="private-chat-user-meta">
-            <span className="private-chat-name">{activeChat.displayName}</span>
-            <span className={`private-chat-presence ${activeChat.isOnline ? 'online' : 'offline'}`}>
-              {getLastSeenText(activeChat)}
-            </span>
+        <div className="private-chat-leading">
+          <button
+            className="private-chat-back-btn"
+            onClick={() => setActiveChat(null)}
+            title="Back to Public Chat"
+            aria-label="Back to Public Chat"
+          >
+            <FaArrowLeft />
+          </button>
+          <div className="private-chat-user">
+            <FaUser className="private-chat-avatar" />
+            <div className="private-chat-user-meta">
+              <span className="private-chat-name">{activeChat.displayName}</span>
+              <span className={`private-chat-presence ${isActuallyOnline(activeChat) ? 'online' : 'offline'}`}>
+                {getLastSeenText(activeChat)}
+              </span>
+            </div>
           </div>
         </div>
         <div className="private-chat-actions">

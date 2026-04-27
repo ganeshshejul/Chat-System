@@ -16,12 +16,21 @@ const Sidebar = () => {
 
   return (
     <>
+      {/* Backdrop — tapping it closes the sidebar on mobile */}
+      <div
+        className={`sidebar-backdrop ${isMobileOpen ? 'visible' : ''}`}
+        onClick={() => setIsMobileOpen(false)}
+      />
+
       {/* Mobile toggle button */}
       <button
+        type="button"
         className={`sidebar-toggle ${isMobileOpen ? 'open' : ''}`}
         onClick={toggleMobileSidebar}
+        aria-label={isMobileOpen ? 'Close contacts sidebar' : 'Open contacts sidebar'}
+        title={isMobileOpen ? 'Close contacts sidebar' : 'Open contacts sidebar'}
       >
-        {isMobileOpen ? <FaChevronLeft /> : <FaUsers />}
+        {isMobileOpen ? <FaChevronLeft className="sidebar-toggle-icon" /> : <FaUsers className="sidebar-toggle-icon" />}
       </button>
 
       <div className={`sidebar ${isMobileOpen ? 'open' : ''}`}>
@@ -36,7 +45,7 @@ const Sidebar = () => {
             className={`sidebar-tab ${activeTab === 'search' ? 'active' : ''}`}
             onClick={() => setActiveTab('search')}
           >
-            <FaSearch className="sidebar-tab-icon" /> Find Users
+            <FaSearch className="sidebar-tab-icon" /> Search
           </button>
           <button
             className={`sidebar-tab ${activeTab === 'requests' ? 'active' : ''}`}
@@ -53,7 +62,7 @@ const Sidebar = () => {
         </div>
 
         <div className="sidebar-content">
-          {activeTab === 'contacts' && <ContactsList />}
+          {activeTab === 'contacts' && <ContactsList onSelect={() => setIsMobileOpen(false)} />}
           {activeTab === 'search' && <UserSearch />}
           {activeTab === 'requests' && <RequestsList />}
         </div>

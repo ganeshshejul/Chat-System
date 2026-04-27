@@ -30,11 +30,10 @@ export const AuthProvider = ({ children }) => {
   const setUserPresence = async (userId, isOnline) => {
     if (!userId) return;
     try {
-      await setDoc(doc(db, 'users', userId), {
-        isOnline,
-        lastSeen: serverTimestamp(),
-        lastActive: serverTimestamp()
-      }, { merge: true });
+      const update = { isOnline, lastActive: serverTimestamp() };
+      // Only update lastSeen when going offline so it reflects "last time seen"
+      if (!isOnline) update.lastSeen = serverTimestamp();
+      await setDoc(doc(db, 'users', userId), update, { merge: true });
     } catch (error) {
       console.error('Presence update failed:', error);
     }
@@ -202,6 +201,15 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
+    // Mark user offline when tab is closed/refreshed (best-effort for Firestore)
+    const handlePageHide = () => {
+      const uid = lastKnownUserRef.current;
+      if (!uid) return;
+      setUserPresence(uid, false);
+    };
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('beforeunload', handlePageHide);
+
     try {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         console.log('Auth state changed - user:', user?.uid, user?.email);
@@ -226,11 +234,17 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       });
 
-      return unsubscribe;
+      return () => {
+        unsubscribe();
+        window.removeEventListener('pagehide', handlePageHide);
+        window.removeEventListener('beforeunload', handlePageHide);
+      };
     } catch (error) {
       console.error('Auth setup error:', error);
       setAuthError(error);
       setLoading(false);
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('beforeunload', handlePageHide);
       return () => {};
     }
   }, [isFirebaseConfigured]);

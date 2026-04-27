@@ -36,7 +36,7 @@ const Navbar = () => {
           <>
             <span className="user-name">Hello, {currentUser.displayName}</span>
             <button onClick={handleLogout} className="logout-btn">
-              <FaSignOutAlt /> Logout
+              <FaSignOutAlt /> <span className="logout-text">Logout</span>
             </button>
           </>
         ) : (

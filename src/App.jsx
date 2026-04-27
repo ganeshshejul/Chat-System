@@ -4,6 +4,7 @@ import { UserProvider } from './context/UserContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import PrivateRoute from './components/PrivateRoute.jsx';
 import Navbar from './components/Navbar.jsx';
+import InstallAppPrompt from './components/InstallAppPrompt.jsx';
 import Login from './pages/Login.jsx';
 import Signup from './pages/Signup.jsx';
 import Chat from './pages/Chat.jsx';
@@ -17,6 +18,7 @@ function App() {
           <UserProvider>
             <div className="app">
               <Navbar />
+              <InstallAppPrompt />
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />

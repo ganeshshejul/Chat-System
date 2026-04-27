@@ -1,8 +1,8 @@
 import { useUser } from '../context/UserContext.jsx';
-import { FaUserFriends, FaComments, FaBell } from 'react-icons/fa';
+import { FaUserFriends, FaComments, FaBell, FaUsers } from 'react-icons/fa';
 import { useEffect } from 'react';
 
-const ContactsList = () => {
+const ContactsList = ({ onSelect }) => {
   const { contacts, setActiveChat, activeChat, unreadMessages } = useUser();
 
   // Debug unread messages when they change
@@ -21,10 +21,18 @@ const ContactsList = () => {
   const handleSelectChat = (contact) => {
     console.log(`Selecting chat with ${contact.displayName}, unread messages: ${unreadMessages[contact.uid] || 0}`);
     setActiveChat(contact);
+    if (onSelect) onSelect();
   };
 
   return (
     <div className="contacts-list">
+      <button
+        className={`public-chat-switch-btn ${!activeChat ? 'active' : ''}`}
+        onClick={() => { setActiveChat(null); if (onSelect) onSelect(); }}
+      >
+        <FaUsers className="public-chat-switch-icon" /> Public Chat
+      </button>
+
       <h3 className="contacts-title">
         <FaUserFriends /> Contacts
       </h3>
